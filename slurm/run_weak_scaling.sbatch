@@ -1,0 +1,1 @@
+# Slurm script for weak scaling test — problem size grows as nodes increase

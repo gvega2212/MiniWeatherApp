@@ -1,0 +1,1 @@
+# Slurm script for strong scaling test — same problem size, increasing number of nodes

@@ -1,0 +1,1 @@
+# Helper wrapper that builds/executes the app (can run inside Apptainer if needed)

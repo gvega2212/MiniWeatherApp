@@ -1,0 +1,1 @@
+# Slurm job script for 1-node serial or hybrid run (used as performance baseline)

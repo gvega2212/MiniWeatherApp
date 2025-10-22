@@ -1,0 +1,1 @@
+# Build instructions; compiles main.cpp into an executable using mpicc/mpicxx with OpenMP flags

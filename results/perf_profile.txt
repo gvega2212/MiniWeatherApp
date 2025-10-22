@@ -1,0 +1,1 @@
+# Output from profiling tools (perf, LIKWID, etc.) — shows CPU usage and bottlenecks

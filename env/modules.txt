@@ -1,0 +1,1 @@
+# List of modules loaded on Magic Castle (e.g., gcc, openmpi); ensures reproducibility of runs
