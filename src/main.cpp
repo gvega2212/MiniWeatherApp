@@ -36,7 +36,9 @@ int main(int argc, char** argv) {
                 for (int k = 0; k < NZ; k++)
                     grid[i][j][k] += 0.01 * rank;
 
-    cout << "Rank " << rank << " handled X[" << start_x << ":" << end_x << "]" << endl;
+    cout << "Rank " << rank << " handled X[" << start_x << ":" << end_x
+     << "]  Local mean=" << grid[nx_local/2][NY/2][NZ/2] << endl;
+
 
     MPI_Finalize();
     return 0;
