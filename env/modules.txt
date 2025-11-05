@@ -1,1 +1,5 @@
-# List of modules loaded on Magic Castle (e.g., gcc, openmpi); ensures reproducibility of runs
+# miniWeather Project - Required Modules
+gcc/12.2.0
+openmpi/4.1.5
+perf
+# likwid (optional, if available)
