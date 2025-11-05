@@ -1,1 +1,19 @@
-# Apptainer (Singularity) definition file — describes container environment (OS, compilers, MPI libs)
+# miniWeather Project Definition File
+
+PROJECT_NAME="miniWeather-HPC"
+CLUSTER_ENVIRONMENT="Magic Castle (EESSI)"
+COMPILER="gcc/12.2.0"
+MPI_LIBRARY="openmpi/4.1.5"
+PROFILING_TOOL="perf"
+NUM_NODES_DEFAULT=1
+TASKS_PER_NODE_DEFAULT=4
+
+# Default runtime parameters
+GRID_SIZE_X=128
+GRID_SIZE_Y=128
+GRID_SIZE_Z=64
+TIMESTEPS=100
+
+# Author / Maintainers
+TEAM_MEMBERS="Cayetana, Hibba, Gaby, Sofia, Diego, and Diana"
+LAST_UPDATED="2025-11-05"
