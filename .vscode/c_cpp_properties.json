@@ -1,17 +1,22 @@
 {
   "configurations": [
     {
-      "name": "windows-gcc-x64",
+      "name": "CrossPlatform",
       "includePath": [
-        "${workspaceFolder}/**"
+        "${workspaceFolder}/**",
+        "/usr/local/opt/open-mpi/include",
+        "/opt/homebrew/opt/open-mpi/include",
+        "C:/Program Files (x86)/Microsoft SDKs/MPI/Include"
       ],
-      "compilerPath": "C:/msys64/mingw64/bin/gcc.exe",
-      "cStandard": "${default}",
-      "cppStandard": "${default}",
-      "intelliSenseMode": "windows-gcc-x64",
-      "compilerArgs": [
-        ""
-      ]
+      "defines": [],
+      "macFrameworkPath": [
+        "/System/Library/Frameworks",
+        "/Library/Frameworks"
+      ],
+      "compilerPath": "${default}",
+      "cStandard": "c17",
+      "cppStandard": "c++17",
+      "intelliSenseMode": "${default}"
     }
   ],
   "version": 4
