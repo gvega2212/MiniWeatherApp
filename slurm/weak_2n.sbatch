@@ -33,7 +33,7 @@ make -C src NX=$NX NY=$NY NZ=$NZ STEPS=$STEPS
 
 export OMP_NUM_THREADS=1
 
-OUT=$(srun --mpi=pmix ./src/miniweather_mpi \
+OUT=$(srun --ntasks=$SLURM_NTASKS ./src/miniweather_mpi \
       | tee results/weak_2n_allranks_${SLURM_JOB_ID}.log)
 
 TIME_VAL=$(printf "%s\n" "$OUT" \

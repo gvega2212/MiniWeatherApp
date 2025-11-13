@@ -29,7 +29,7 @@ echo "nodes,ranks,time" > "$CSV"
 export OMP_NUM_THREADS=1
 
 echo "Running strong scaling on 2 nodes with $SLURM_NTASKS ranks..."
-OUT=$(srun --mpi=pmix ./src/miniweather_mpi \
+OUT=$(srun --ntasks=$SLURM_NTASKS ./src/miniweather_mpi \
       | tee results/strong_2n_allranks_${SLURM_JOB_ID}.log)
 
 TIME_VAL=$(printf "%s\n" "$OUT" \
