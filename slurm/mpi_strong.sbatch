@@ -1,6 +1,5 @@
 #!/bin/bash
 #SBATCH -J mw-strong
-#SBATCH -A <account>
 #SBATCH -N 1                      # change to 1,2,4,8 for your sweep
 #SBATCH --ntasks-per-node=16      # match cores per node on your cluster
 #SBATCH -t 00:15:00
