@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH -J mw-strong-4n
 #SBATCH -N 4
-#SBATCH --ntasks-per-node=4         # total ranks = 16
+#SBATCH --ntasks-per-node=2         # total ranks = 8
 #SBATCH -t 00:20:00
 #SBATCH -o results/strong_4n_%j.out
 #SBATCH -e results/strong_4n_%j.err
@@ -18,6 +18,7 @@ STEPS=50
 
 mkdir -p results
 
+# Build with fixed strong-scaling problem size
 make -C src clean
 make -C src NX=$NX NY=$NY NZ=$NZ STEPS=$STEPS
 
@@ -27,7 +28,7 @@ echo "nodes,ranks,time" > "$CSV"
 export OMP_NUM_THREADS=1
 
 echo "Running strong scaling on 4 nodes with $SLURM_NTASKS ranks..."
-OUT=$(srun --mpi=pmix ./src/miniweather_mpi \
+OUT=$(srun --ntasks=$SLURM_NTASKS ./src/miniweather_mpi \
       | tee results/strong_4n_allranks_${SLURM_JOB_ID}.log)
 
 TIME_VAL=$(printf "%s\n" "$OUT" \

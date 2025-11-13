@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH -J mw-weak-4n
 #SBATCH -N 4
-#SBATCH --ntasks-per-node=4        # total ranks = 16
+#SBATCH --ntasks-per-node=2        # total ranks = 8
 #SBATCH -t 00:20:00
 #SBATCH -o results/weak_4n_%j.out
 #SBATCH -e results/weak_4n_%j.err
@@ -33,7 +33,7 @@ make -C src NX=$NX NY=$NY NZ=$NZ STEPS=$STEPS
 
 export OMP_NUM_THREADS=1
 
-OUT=$(srun --mpi=pmix ./src/miniweather_mpi \
+OUT=$(srun --ntasks=$RANKS ./src/miniweather_mpi \
       | tee results/weak_4n_allranks_${SLURM_JOB_ID}.log)
 
 TIME_VAL=$(printf "%s\n" "$OUT" \
