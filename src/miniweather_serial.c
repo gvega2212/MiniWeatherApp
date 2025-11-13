@@ -26,7 +26,7 @@ int main() {
     }
 
     // Save results to CSV
-    FILE *f = fopen("../results/output.csv", "w");
+    FILE *f = fopen("../results/baseline/output_serial.csv", "w");
     if (!f) {
         printf("Error opening file!\n");
         return 1;

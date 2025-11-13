@@ -3,17 +3,18 @@
 #SBATCH -N 1
 #SBATCH --ntasks-per-node=4
 #SBATCH -t 00:20:00
-#SBATCH -o results/weak_1n_%j.out
-#SBATCH -e results/weak_1n_%j.err
+#SBATCH -o results/weak_scaling/1_node/weak_1n_%j.out
+#SBATCH -e results/weak_scaling/1_node/weak_1n_%j.err
 
 set -euo pipefail
 cd "$SLURM_SUBMIT_DIR"
 
 source ./env/load_modules.sh
 
-mkdir -p results
+# make sure nested dirs exist
+mkdir -p results/weak_scaling/1_node
 
-CSV="results/weak_1n_${SLURM_JOB_ID}.csv"
+CSV="results/weak_scaling/1_node/weak_1n_${SLURM_JOB_ID}.csv"
 echo "ranks,NX,NY,NZ,STEPS,time_seconds" > "$CSV"
 
 BASE_NX=256
@@ -33,7 +34,7 @@ for RANKS in 1 2 4; do
 
   export OMP_NUM_THREADS=1
   OUT=$(srun --ntasks=$RANKS ./src/miniweather_mpi \
-        | tee results/weak_1n_${RANKS}ranks_${SLURM_JOB_ID}.log)
+        | tee results/weak_scaling/1_node/weak_1n_${RANKS}ranks_${SLURM_JOB_ID}.log)
 
   TIME_VAL=$(printf "%s\n" "$OUT" \
         | awk -F'TIME=' '/TIME=/{print $2}' | awk '{print $1}')

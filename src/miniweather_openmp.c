@@ -29,7 +29,7 @@ int main() {
     }
 
     // Save results
-    FILE *f = fopen("../results/output_openmp.csv", "w");
+    FILE *f = fopen("../results/baseline/output_openmp.csv", "w");
     if (!f) {
         printf("Error opening file!\n");
         return 1;
