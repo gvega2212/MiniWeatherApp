@@ -1,61 +1,63 @@
-# =====================================
-# miniWeather Makefile (Cross-Platform)
-# =====================================
+# ==========================================
+# miniWeather – C (serial, OpenMP, MPI+OMP)
+# ==========================================
 
-# Detect OS type
-UNAME_S := $(shell uname -s)
+# MPI C compiler
+CC      = mpicc
+CFLAGS  = -O3 -Wall -fopenmp
+LDFLAGS = -fopenmp
 
-# --------------------------
-# Compiler & include settings
-# --------------------------
-ifeq ($(UNAME_S),Darwin)
-    # macOS
-    ifneq (,$(wildcard /opt/homebrew))
-        MPI_HOME = /opt/homebrew/opt/open-mpi
-    else
-        MPI_HOME = /usr/local/opt/open-mpi
-    endif
-    CC = $(MPI_HOME)/bin/mpicxx
-    CFLAGS = -I$(MPI_HOME)/include -O2 -std=c++17
-    LDFLAGS = -L$(MPI_HOME)/lib
-else ifeq ($(OS),Windows_NT)
-    CC = mpicxx
-    CFLAGS = -I"C:/Program Files (x86)/Microsoft SDKs/MPI/Include" -O2
-    LDFLAGS = -L"C:/Program Files (x86)/Microsoft SDKs/MPI/Lib/x64"
-else
-    CC = mpicxx
-    CFLAGS = -O2 -std=c++17
-    LDFLAGS =
-endif
+# ---------------------------
+# Problem size (overridable)
+# ---------------------------
+# You can override these on the command line, e.g.:
+#   make miniweather_mpi NX=512 NY=256 NZ=256 STEPS=100
+NX     ?= 256
+NY     ?= 128
+NZ     ?= 128
+STEPS  ?= 50
 
+DEFS = -DNX=$(NX) -DNY=$(NY) -DNZ=$(NZ) -DSTEPS=$(STEPS)
+CFLAGS += $(DEFS)
 
-TARGET = miniweather_mpi
-SRC = main.cpp
+# ---------------------------
+# Targets
+# ---------------------------
+TARGETS = miniweather_serial miniweather_openmp miniweather_mpi
 
-all: $(TARGET)
+all: $(TARGETS)
 
-$(TARGET): $(SRC)
-	$(CC) $(CFLAGS) -o $(TARGET) $(SRC) $(LDFLAGS)
+miniweather_serial: miniweather_serial.c
+	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
+
+miniweather_openmp: miniweather_openmp.c
+	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
+
+miniweather_mpi: miniweather_mpi.c
+	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
 
 clean:
-	rm -f $(TARGET)
+	rm -f $(TARGETS) *.o
 
+# ===========================
+# Convenience run targets
+# ===========================
 
-NX ?= 256
-NY ?= 128
-NZ ?= 128
-STEPS ?= 50
-
-CDEFS := -DNX=$(NX) -DNY=$(NY) -DNZ=$(NZ) -DSTEPS=$(STEPS)
-
-CFLAGS += $(CDEFS)
-
+# Number of MPI ranks for local tests (not Slurm)
 N ?= 4
-run: $(TARGET)
-	@echo "Running $(N) ranks → results/mpi_$(N)ranks_local.txt"
-	mpirun --bind-to core --map-by core -np $(N) ./$(TARGET) | tee ../results/mpi_$(N)ranks_local.txt
 
-metrics:
+run_serial: miniweather_serial
+	./miniweather_serial
+
+run_openmp: miniweather_openmp
+	./miniweather_openmp
+
+run_mpi_local: miniweather_mpi
+	@echo "Running $(N) ranks → ../results/mpi_$(N)ranks_local.txt"
+	mpirun -np $(N) ./miniweather_mpi | tee ../results/mpi_$(N)ranks_local.txt
+
+# Build simple local scaling CSV from the mpi_*_local.txt logs
+metrics_local:
 	@cd ../results && \
 	echo "ranks,time_seconds" > scaling_local.csv && \
 	for f in `ls mpi_*rank*_local.txt 2>/dev/null | sort -V`; do \
@@ -65,4 +67,3 @@ metrics:
 	done && \
 	awk -F, 'NR==1{print "ranks,time_seconds,speedup,efficiency_pct"; next} NR==2{t1=$$2} NR>1{speed=t1/$$2; eff=100*speed/$$1; printf "%s,%.6f,%.4f,%.1f\n",$$1,$$2,speed,eff}' scaling_local.csv > scaling_local_metrics.csv && \
 	echo "Wrote results/scaling_local.csv and results/scaling_local_metrics.csv"
-

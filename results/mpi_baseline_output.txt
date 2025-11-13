@@ -1,4 +1,0 @@
-Rank 2 handled X[4:5]  Local mean=4.50
-Rank 3 handled X[6:7]  Local mean=6.50
-Rank 1 handled X[2:3]  Local mean=2.50
-Rank 0 handled X[0:1]  Local mean=0.50
