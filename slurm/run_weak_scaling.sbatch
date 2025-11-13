@@ -7,9 +7,9 @@
 #SBATCH -e results/weak_scaling_%j.err
 
 set -euo pipefail
-cd "$(dirname "$0")/.."
+cd "$SLURM_SUBMIT_DIR"
 
-source env/load_modules.sh
+source ./env/load_modules.sh
 
 mkdir -p results
 echo "ranks,NX,NY,NZ,STEPS,time_seconds" > results/weak_scaling.csv

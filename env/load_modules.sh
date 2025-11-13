@@ -1,16 +1,9 @@
 #!/bin/bash
-# Load all modules required for the miniWeather project
+# Minimal environment setup for MiniWeather on this cluster.
+# We assume system-default compilers and MPI are already available.
 
-# Compiler and MPI
-module load gcc/12.2.0
-module load openmpi/4.1.5
-
-# Profiling tools
-module load perf
-# (Optional: module load likwid if available on your cluster)
-
-# Confirm environment setup
-echo "=== miniWeather environment loaded ==="
-which gcc
-which mpicc
-which mpirun
+# If your cluster uses Lmod, you *could* do:
+# module purge
+# module load gcc
+# module load openmpi
+# but on this system it appears to work without explicit modules.

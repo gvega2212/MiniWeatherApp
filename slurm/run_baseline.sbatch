@@ -7,9 +7,9 @@
 #SBATCH -e results/baseline_%j.err
 
 set -euo pipefail
-cd "$(dirname "$0")/.."
+cd "$SLURM_SUBMIT_DIR"
 
-source env/load_modules.sh
+source ./env/load_modules.sh
 
 # Baseline problem size (can match strong/weak scaling)
 NX=256

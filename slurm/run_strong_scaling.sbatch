@@ -7,9 +7,9 @@
 #SBATCH -e results/strong_scaling_%j.err
 
 set -euo pipefail
-cd "$(dirname "$0")/.."
+cd "$SLURM_SUBMIT_DIR"
 
-source env/load_modules.sh
+source ./env/load_modules.sh
 
 # Fixed grid for strong scaling
 NX=512
