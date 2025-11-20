@@ -1,4 +1,3 @@
-// miniweather_openacc.c - Single GPU with OpenACC and metrics
 #include <stdio.h>
 #include <stdlib.h>
 #include <openacc.h>
@@ -66,24 +65,25 @@ int main(int argc, char **argv) {
         return 1;
     }
     
-    // Copy data to GPU
+    // Allocate on GPU
     #pragma acc enter data create(grid[0:elems], new_grid[0:elems])
     
+    // Initialize grid on GPU
     init_grid(grid);
     
-    // Timing
-    double t0 = acc_get_wall_time();
+    // Timing using OpenACC wall-clock timer
+    double t0 = acc_get_wtime();
     double kernel_time = 0.0;
     
     for (int t = 0; t < STEPS; t++) {
-        double t_kernel_start = acc_get_wall_time();
+        double t_kernel_start = acc_get_wtime();
         step_update(grid, new_grid);
         #pragma acc wait
-        double t_kernel_end = acc_get_wall_time();
+        double t_kernel_end = acc_get_wtime();
         kernel_time += (t_kernel_end - t_kernel_start);
     }
     
-    double t1 = acc_get_wall_time();
+    double t1 = acc_get_wtime();
     double elapsed = t1 - t0;
     
     // Calculate checksum on GPU
@@ -97,7 +97,7 @@ int main(int argc, char **argv) {
         }
     }
     
-    // Copy results back from GPU
+    // Copy results back from GPU and free GPU memory
     #pragma acc exit data copyout(grid[0:elems]) delete(new_grid[0:elems])
     
     // Calculate metrics
