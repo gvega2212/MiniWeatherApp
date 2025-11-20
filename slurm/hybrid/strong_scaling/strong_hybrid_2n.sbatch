@@ -5,8 +5,8 @@
 #SBATCH --cpus-per-task=1         # cluster nodes only have 2 CPUs!
 #SBATCH -t 00:15:00
 #SBATCH --mem=4G
-#SBATCH -o results/hybrid/strong_scaling/hybrid_2n_%j.out
-#SBATCH -e results/hybrid/strong_scaling/hybrid_2n_%j.err
+#SBATCH -o results/hybrid/strong_scaling/2_node/hybrid_2n_%j.out
+#SBATCH -e results/hybrid/strong_scaling/2_node/hybrid_2n_%j.err
 
 set -euo pipefail
 cd "$SLURM_SUBMIT_DIR"

@@ -7,8 +7,8 @@
 export OMP_NUM_THREADS = 1
 #SBATCH -t 00:20:00
 #SBATCH --mem=4G
-#SBATCH -o results/hybrid/strong_scaling/hybrid_4n_%j.out
-#SBATCH -e results/hybrid/strong_scaling/hybrid_4n_%j.err
+#SBATCH -o results/hybrid/strong_scaling/4_node/hybrid_4n_%j.out
+#SBATCH -e results/hybrid/strong_scaling/4_node/hybrid_4n_%j.err
 
 set -euo pipefail
 cd "$SLURM_SUBMIT_DIR"

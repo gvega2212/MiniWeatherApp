@@ -5,8 +5,8 @@
 #SBATCH --cpus-per-task=2
 #SBATCH -t 00:10:00
 #SBATCH --mem=4G
-#SBATCH -o results/hybrid/strong_scaling/hybrid_1n_%j.out
-#SBATCH -e results/hybrid/strong_scaling/hybrid_1n_%j.err
+#SBATCH -o results/hybrid/strong_scaling/1_node/hybrid_1n_%j.out
+#SBATCH -e results/hybrid/strong_scaling/1_node/hybrid_1n_%j.err
 
 set -euo pipefail
 cd "$SLURM_SUBMIT_DIR"
