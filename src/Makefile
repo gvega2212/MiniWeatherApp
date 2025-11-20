@@ -23,7 +23,7 @@ CFLAGS += $(DEFS)
 # ---------------------------
 # Targets
 # ---------------------------
-TARGETS = miniweather_serial miniweather_openmp miniweather_mpi
+TARGETS = miniweather_serial miniweather_openmp miniweather_mpi miniweather_hybrid
 
 all: $(TARGETS)
 
@@ -34,6 +34,9 @@ miniweather_openmp: miniweather_openmp.c
 	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
 
 miniweather_mpi: miniweather_mpi.c
+	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
+
+miniweather_hybrid: miniweather_hybrid.c
 	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
 
 clean:

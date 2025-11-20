@@ -1,9 +1,0 @@
-make: Entering directory '/home/user07/hpc-work/MiniWeatherApp-1/src'
-rm -f miniweather_serial miniweather_openmp miniweather_mpi *.o
-make: Leaving directory '/home/user07/hpc-work/MiniWeatherApp-1/src'
-make: Entering directory '/home/user07/hpc-work/MiniWeatherApp-1/src'
-mpicc -O3 -Wall -fopenmp -DNX=512 -DNY=256 -DNZ=256 -DSTEPS=50 -o miniweather_serial miniweather_serial.c -fopenmp
-mpicc -O3 -Wall -fopenmp -DNX=512 -DNY=256 -DNZ=256 -DSTEPS=50 -o miniweather_openmp miniweather_openmp.c -fopenmp
-mpicc -O3 -Wall -fopenmp -DNX=512 -DNY=256 -DNZ=256 -DSTEPS=50 -o miniweather_mpi miniweather_mpi.c -fopenmp
-make: Leaving directory '/home/user07/hpc-work/MiniWeatherApp-1/src'
-Running strong scaling on 4 nodes with 8 ranks...
