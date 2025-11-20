@@ -1,44 +1,82 @@
+// miniweather_serial.c - Serial baseline with comprehensive metrics
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/time.h>
 
-#define NX 8
-#define NY 8
-#define NZ 8
-#define STEPS 10
+#ifndef NX
+#define NX 64
+#endif
+#ifndef NY
+#define NY 64
+#endif
+#ifndef NZ
+#define NZ 64
+#endif
+#ifndef STEPS
+#define STEPS 20
+#endif
+
+static double get_wtime() {
+    struct timeval tv;
+    gettimeofday(&tv, NULL);
+    return tv.tv_sec + tv.tv_usec * 1e-6;
+}
 
 int main() {
-    double grid[NX][NY][NZ] = {0};  
-
-    // Initialize grid with some values
+    double (*grid)[NY][NZ] = malloc(sizeof(double[NX][NY][NZ]));
+    double (*new_grid)[NY][NZ] = malloc(sizeof(double[NX][NY][NZ]));
+    
+    if (!grid || !new_grid) {
+        fprintf(stderr, "Allocation failed\n");
+        return 1;
+    }
+    
+    // Initialize grid
     for (int x = 0; x < NX; x++)
         for (int y = 0; y < NY; y++)
             for (int z = 0; z < NZ; z++)
-                grid[x][y][z] = x + y + z;
-
+                grid[x][y][z] = (double)(x + y + z);
+    
+    // Timing
+    double t0 = get_wtime();
+    
     // Time evolution loop
     for (int t = 0; t < STEPS; t++) {
+        // 6-point stencil update
         for (int x = 1; x < NX-1; x++)
             for (int y = 1; y < NY-1; y++)
                 for (int z = 1; z < NZ-1; z++)
-                    grid[x][y][z] += (grid[x-1][y][z] + grid[x+1][y][z] +
-                                       grid[x][y-1][z] + grid[x][y+1][z] +
-                                       grid[x][y][z-1] + grid[x][y][z+1]) / 6.0;
+                    new_grid[x][y][z] = (grid[x-1][y][z] + grid[x+1][y][z] +
+                                         grid[x][y-1][z] + grid[x][y+1][z] +
+                                         grid[x][y][z-1] + grid[x][y][z+1]) / 6.0;
+        
+        // Copy back
+        for (int x = 1; x < NX-1; x++)
+            for (int y = 1; y < NY-1; y++)
+                for (int z = 1; z < NZ-1; z++)
+                    grid[x][y][z] = new_grid[x][y][z];
     }
-
-    // Save results to CSV
-    FILE *f = fopen("../results/baseline/output_serial.csv", "w");
-    if (!f) {
-        printf("Error opening file!\n");
-        return 1;
-    }
-
+    
+    double t1 = get_wtime();
+    double elapsed = t1 - t0;
+    
+    // Calculate metrics
+    size_t total_cells = (size_t)NX * NY * NZ;
+    double throughput_steps = STEPS / elapsed;
+    double throughput_cells = (total_cells * STEPS) / elapsed;
+    
+    // Checksum for correctness
+    double sum = 0.0;
     for (int x = 0; x < NX; x++)
         for (int y = 0; y < NY; y++)
             for (int z = 0; z < NZ; z++)
-                fprintf(f, "%d,%d,%d,%.2f\n", x, y, z, grid[x][y][z]);
-
-    fclose(f);
-    printf("Simulation complete! Results saved to results/output.csv\n");
+                sum += grid[x][y][z];
+    
+    printf("METRICS: VERSION=serial GRID=%dx%dx%d STEPS=%d TIME=%.6f "
+           "THROUGHPUT_STEPS=%.2f THROUGHPUT_CELLS=%.2e CHECKSUM=%.10e\n",
+           NX, NY, NZ, STEPS, elapsed, throughput_steps, throughput_cells, sum);
+    
+    free(new_grid);
+    free(grid);
     return 0;
 }
-
