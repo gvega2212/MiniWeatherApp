@@ -17,3 +17,38 @@ TIMESTEPS=100
 # Author / Maintainers
 TEAM_MEMBERS="Cayetana, Hibba, Gaby, Sofia, Diego, and Diana"
 LAST_UPDATED="2025-11-05"
+
+# Apptainer definition for Ubuntu 22.04 with required packages and OMP_NUM_THREADS environment.
+BOOTSTRAP="docker"
+FROM="ubuntu:22.04"
+
+%labels
+    Author MiniWeather Maintainers
+
+%environment
+    export OMP_NUM_THREADS=8
+    export LC_ALL=C.UTF-8
+    export LANG=C.UTF-8
+    PATH=/usr/local/bin:$PATH
+
+%post
+    apt-get update
+    DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+        build-essential \
+        ca-certificates \
+        wget \
+        git \
+        python3 \
+        python3-pip \
+        libopenmpi-dev \
+        openmpi-bin \
+        linux-tools-common \
+        linux-tools-generic \
+        linux-tools-$(uname -r) || true \
+        perf || true
+    apt-get clean
+    rm -rf /var/lib/apt/lists/*
+
+%runscript
+    echo "Running MiniWeatherApp container"
+    exec "$@"

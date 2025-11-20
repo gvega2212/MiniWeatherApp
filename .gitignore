@@ -1,0 +1,35 @@
+# Compiled miniweather binaries
+/src/miniweather_*
+
+# Object files and build artifacts
+*.o
+*.so
+*.a
+*.d
+*.mod
+build/
+bin/
+
+# Slurm logs
+*.out
+*.err
+slurm-*.out
+slurm-*.err
+logs/
+
+# Apptainer / Singularity images
+*.sif
+*.img
+
+# Results raw logs (keep only structured CSVs in results/)
+results/**/*.log
+results/**/*.txt
+results/**/*.out
+results/**/*.err
+
+# Editor/temp files
+*~
+*.swp
+.DS_Store
+.idea/
+.vscode/
