@@ -1,0 +1,6 @@
+SLURM_NNODES = 4
+SLURM_JOB_NODELIST = node[3-6]
+node3.int.hpcie.labs.faculty.ie.edu
+node4.int.hpcie.labs.faculty.ie.edu
+node5.int.hpcie.labs.faculty.ie.edu
+node6.int.hpcie.labs.faculty.ie.edu
