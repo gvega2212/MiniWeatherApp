@@ -1,4 +1,3 @@
-// miniweather_mpi_openacc.c - Multi-GPU with MPI+OpenACC and metrics
 #include <stdio.h>
 #include <stdlib.h>
 #include <mpi.h>
@@ -17,6 +16,7 @@
 #define STEPS 100
 #endif
 
+// sx is passed but not needed in the stride; kept for clarity with local slab
 #define IDX(x,y,z,sx) (((x) * (NY) + (y)) * (NZ) + (z))
 
 void init_local(double *grid, int lx, int gx0) {
@@ -24,8 +24,7 @@ void init_local(double *grid, int lx, int gx0) {
     
     #pragma acc parallel loop collapse(3) present(grid)
     for (int x = 0; x < sx; x++) {
-        for (int y = 0; y < NY;
-for (int y = 0; y < NY; y++) {
+        for (int y = 0; y < NY; y++) {
             for (int z = 0; z < NZ; z++) {
                 int gx = gx0 + (x - 1);
                 if (gx < 0) gx = 0;
@@ -39,40 +38,47 @@ void halo_exchange(double *grid, int lx, int left, int right, MPI_Comm comm) {
     const int sx = lx + 2;
     const int face_elems = NY * NZ;
     
-    double *send_left = (double*)malloc(face_elems * sizeof(double));
+    double *send_left  = (double*)malloc(face_elems * sizeof(double));
     double *send_right = (double*)malloc(face_elems * sizeof(double));
-    double *recv_left = (double*)malloc(face_elems * sizeof(double));
+    double *recv_left  = (double*)malloc(face_elems * sizeof(double));
     double *recv_right = (double*)malloc(face_elems * sizeof(double));
+    
+    if (!send_left || !send_right || !recv_left || !recv_right) {
+        fprintf(stderr, "Halo allocation failed\n");
+        MPI_Abort(comm, 3);
+    }
     
     // Copy halo data from GPU to CPU
     #pragma acc update host(grid[IDX(1,0,0,sx):face_elems])
     #pragma acc update host(grid[IDX(lx,0,0,sx):face_elems])
     
     for (int i = 0; i < face_elems; i++) {
-        send_left[i] = grid[IDX(1,0,0,sx) + i];
+        send_left[i]  = grid[IDX(1,0,0,sx)  + i];
         send_right[i] = grid[IDX(lx,0,0,sx) + i];
     }
     
     // MPI exchange
-    MPI_Sendrecv(send_left, face_elems, MPI_DOUBLE, left, 100,
+    MPI_Sendrecv(send_left,  face_elems, MPI_DOUBLE, left,  100,
                  recv_right, face_elems, MPI_DOUBLE, right, 100,
                  comm, MPI_STATUS_IGNORE);
     
     MPI_Sendrecv(send_right, face_elems, MPI_DOUBLE, right, 101,
-                 recv_left, face_elems, MPI_DOUBLE, left, 101,
+                 recv_left,  face_elems, MPI_DOUBLE, left,  101,
                  comm, MPI_STATUS_IGNORE);
     
-    // Copy received halos back to GPU
+    // Copy received halos back to GPU (via host copy first)
     for (int i = 0; i < face_elems; i++) {
-        grid[IDX(0, 0, 0, sx) + i] = recv_left[i];
+        grid[IDX(0,    0, 0, sx) + i] = recv_left[i];
         grid[IDX(lx+1, 0, 0, sx) + i] = recv_right[i];
     }
     
     #pragma acc update device(grid[IDX(0,0,0,sx):face_elems])
     #pragma acc update device(grid[IDX(lx+1,0,0,sx):face_elems])
     
-    free(send_left); free(send_right);
-    free(recv_left); free(recv_right);
+    free(send_left);
+    free(send_right);
+    free(recv_left);
+    free(recv_right);
 }
 
 void step_update(double *restrict g, double *restrict ng, int lx) {
@@ -113,6 +119,12 @@ int main(int argc, char **argv) {
     
     // Set GPU device based on rank
     int num_devices = acc_get_num_devices(acc_device_nvidia);
+    if (num_devices <= 0) {
+        if (rank == 0) {
+            fprintf(stderr, "ERROR: No GPUs visible to OpenACC\n");
+        }
+        MPI_Abort(comm, 4);
+    }
     int device_id = rank % num_devices;
     acc_set_device_num(device_id, acc_device_nvidia);
     
@@ -122,12 +134,12 @@ int main(int argc, char **argv) {
     }
     
     const int base = NX / size;
-    const int rem = NX % size;
-    const int lx = base + ((rank == size-1) ? rem : 0);
-    const int gx0 = rank * base;
+    const int rem  = NX % size;
+    const int lx   = base + ((rank == size-1) ? rem : 0);
+    const int gx0  = rank * base;
     
     const size_t slab_elems = (size_t)(lx + 2) * NY * NZ;
-    double *grid = (double*)malloc(slab_elems * sizeof(double));
+    double *grid     = (double*)malloc(slab_elems * sizeof(double));
     double *new_grid = (double*)malloc(slab_elems * sizeof(double));
     
     if (!grid || !new_grid) {
@@ -140,13 +152,12 @@ int main(int argc, char **argv) {
     
     init_local(grid, lx, gx0);
     
-    const int left = (rank == 0) ? MPI_PROC_NULL : rank - 1;
-    const int right = (rank == size-1) ? MPI_PROC_NULL : rank + 1;
+    const int left  = (rank == 0)        ? MPI_PROC_NULL : rank - 1;
+    const int right = (rank == size - 1) ? MPI_PROC_NULL : rank + 1;
     
     // Timing variables
-    double comm_time = 0.0;
-    double comp_time = 0.0;
-    double kernel_time = 0.0;
+    double comm_time   = 0.0;
+    double comp_time   = 0.0;
     
     MPI_Barrier(comm);
     double t0 = MPI_Wtime();
@@ -170,7 +181,7 @@ int main(int argc, char **argv) {
     double t1 = MPI_Wtime();
     double elapsed = t1 - t0;
     
-    // Checksum on GPU
+    // Checksum on GPU (internal slab cells only)
     double local_sum = 0.0;
     const int sx = lx + 2;
     #pragma acc parallel loop collapse(3) reduction(+:local_sum) present(grid)
@@ -182,22 +193,22 @@ int main(int argc, char **argv) {
         }
     }
     
-    double global_sum = 0.0;
-    double max_elapsed = 0.0;
+    double global_sum    = 0.0;
+    double max_elapsed   = 0.0;
     double max_comm_time = 0.0;
     double max_comp_time = 0.0;
     
-    MPI_Reduce(&local_sum, &global_sum, 1, MPI_DOUBLE, MPI_SUM, 0, comm);
-    MPI_Reduce(&elapsed, &max_elapsed, 1, MPI_DOUBLE, MPI_MAX, 0, comm);
-    MPI_Reduce(&comm_time, &max_comm_time, 1, MPI_DOUBLE, MPI_MAX, 0, comm);
-    MPI_Reduce(&comp_time, &max_comp_time, 1, MPI_DOUBLE, MPI_MAX, 0, comm);
+    MPI_Reduce(&local_sum,  &global_sum,    1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD, 0);
+    MPI_Reduce(&elapsed,    &max_elapsed,   1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD, 0);
+    MPI_Reduce(&comm_time,  &max_comm_time, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD, 0);
+    MPI_Reduce(&comp_time,  &max_comp_time, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD, 0);
     
     if (rank == 0) {
         size_t total_cells = (size_t)NX * NY * NZ;
-        double throughput_steps = STEPS / max_elapsed;
-        double throughput_cells = (total_cells * STEPS) / max_elapsed;
-        double comm_pct = 100.0 * max_comm_time / max_elapsed;
-        double comp_pct = 100.0 * max_comp_time / max_elapsed;
+        double throughput_steps  = STEPS / max_elapsed;
+        double throughput_cells  = (total_cells * STEPS) / max_elapsed;
+        double comm_pct          = 100.0 * max_comm_time / max_elapsed;
+        double comp_pct          = 100.0 * max_comp_time / max_elapsed;
         
         printf("METRICS: VERSION=mpi_openacc RANKS=%d GPUS=%d GRID=%dx%dx%d STEPS=%d TIME=%.6f "
                "COMM_TIME=%.6f COMP_TIME=%.6f COMM_PCT=%.2f COMP_PCT=%.2f "
