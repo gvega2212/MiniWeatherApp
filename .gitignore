@@ -1,8 +1,15 @@
+# Ignore binaries that start with "miniweather_"
+miniweather_mpi
+miniweather_openacc
+miniweather_mpi_openacc
 miniweather_hybrid
-miniweather_*
+miniweather_serial
+miniweather_openmp
+
+# Ignore any cached or temporary files
 *.o
-*.exe
 *.out
+*.exe
 
 # Ignore all result artifacts
 /results/
