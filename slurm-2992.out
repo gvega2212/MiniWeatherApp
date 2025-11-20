@@ -1,5 +1,5 @@
-/var/spool/slurmd/job02964/slurm_script: line 7: export: `=': not a valid identifier
-/var/spool/slurmd/job02964/slurm_script: line 7: export: `1': not a valid identifier
+/var/spool/slurmd/job02992/slurm_script: line 7: export: `=': not a valid identifier
+/var/spool/slurmd/job02992/slurm_script: line 7: export: `1': not a valid identifier
 make: Entering directory '/home/user22/MiniWeatherApp-2/src'
 rm -f miniweather_serial miniweather_openmp miniweather_mpi *.o
 make: Leaving directory '/home/user22/MiniWeatherApp-2/src'
