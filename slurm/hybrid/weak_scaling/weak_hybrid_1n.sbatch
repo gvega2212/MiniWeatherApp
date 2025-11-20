@@ -31,11 +31,11 @@ echo "nodes,ranks,threads,NX,NY,NZ,STEPS,time" > "$CSV"
 echo "Running HYBRID weak scaling on 1 node: RANKS=$RANKS THREADS=$SLURM_CPUS_PER_TASK NX=$NX"
 
 make -C src clean
-make -C src NX=$NX NY=$NY NZ=$NZ STEPS=$STEPS
+make -C src miniweather_hybrid NX=$NX NY=$NY NZ=$NZ STEPS=$STEPS
 
 export OMP_NUM_THREADS=$SLURM_CPUS_PER_TASK
 
-OUT=$(srun --mpi=pmi2 ./src/miniweather_hybrid \
+OUT=$(srun ./src/miniweather_hybrid \
        | tee results/hybrid/weak_scaling/1_node/weak_hybrid_1n_${SLURM_JOB_ID}.log)
 
 TIME_VAL=$(printf "%s\n" "$OUT" \

@@ -1,0 +1,16 @@
+miniweather_hybrid
+miniweather_*
+*.o
+*.exe
+*.out
+
+# Ignore all result artifacts
+/results/
+/results/**
+/results/*
+
+# (Optional) explicitly ignore common result file types
+results/**/*.csv
+results/**/*.err
+results/**/*.log
+results/**/*.txt

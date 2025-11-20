@@ -1,8 +1,0 @@
-Running HYBRID weak scaling on 2 nodes: RANKS=2 THREADS=2 NX=512
-make: Entering directory '/home/user17/MiniWeatherApp/src'
-rm -f miniweather_serial miniweather_openmp miniweather_mpi *.o
-make: Leaving directory '/home/user17/MiniWeatherApp/src'
-make: Entering directory '/home/user17/MiniWeatherApp/src'
-mpicc -O3 -Wall -fopenmp -DNX=512 -DNY=128 -DNZ=128 -DSTEPS=50 -o miniweather_serial miniweather_serial.c -fopenmp
-mpicc -O3 -Wall -fopenmp -DNX=512 -DNY=128 -DNZ=128 -DSTEPS=50 -o miniweather_openmp miniweather_openmp.c -fopenmp
-make: Leaving directory '/home/user17/MiniWeatherApp/src'
