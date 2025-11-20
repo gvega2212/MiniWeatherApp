@@ -1,39 +1,37 @@
 #!/bin/bash
-#SBATCH -J mw-baseline
-#SBATCH -N 1
-#SBATCH --ntasks-per-node=1
-#SBATCH -t 00:05:00
-#SBATCH -o results/baseline/baseline_%j.out
-#SBATCH -e results/baseline/baseline_%j.err
+#SBATCH --job-name=miniweather_baseline
+#SBATCH --nodes=1
+#SBATCH --ntasks=1
+#SBATCH --time=00:20:00
+#SBATCH --output=logs/%x-%j.out
+#SBATCH --error=logs/%x-%j.err
 
 set -euo pipefail
-cd "$SLURM_SUBMIT_DIR"
 
-source ./env/load_modules.sh
+# load modules
+source ../env/load_modules.sh
 
-# Baseline problem size
-NX=256
-NY=128
-NZ=128
-STEPS=50
+# Example overrides (tune as needed)
+NX=${NX:-64}
+NY=${NY:-64}
+NZ=${NZ:-64}
+STEPS=${STEPS:-10}
+export OMP_NUM_THREADS=${OMP_NUM_THREADS:-1}
 
-# Build all three versions with these sizes (from repo root)
+# Build serial and openmp targets
 make -C src clean
-make -C src NX=$NX NY=$NY NZ=$NZ STEPS=$STEPS
+make -C src miniweather_serial NX=$NX NY=$NY NZ=$NZ STEPS=$STEPS
+make -C src miniweather_openmp NX=$NX NY=$NY NZ=$NZ STEPS=$STEPS
 
-# Make sure baseline dir exists
 mkdir -p results/baseline
 
-# Now run from src/, so ../results points to the right place
-cd src
+echo "Running serial..."
+TIME_SERIAL=$(./src/miniweather_serial 2>&1 | tee /dev/stderr | grep '^TIME:' | awk '{print $2}')
+echo "serial,${TIME_SERIAL},${NX},${NY},${NZ},${STEPS}" > results/baseline/run_times_summary.csv
 
-echo "Running serial baseline..."
-srun --ntasks=1 ./miniweather_serial > ../results/baseline/serial_baseline.log
+echo "Running openmp..."
+export OMP_NUM_THREADS=${OMP_NUM_THREADS:-8}
+TIME_OPENMP=$(./src/miniweather_openmp 2>&1 | tee /dev/stderr | grep '^TIME:' | awk '{print $2}')
+echo "openmp,${TIME_OPENMP},${NX},${NY},${NZ},${STEPS},${OMP_NUM_THREADS}" >> results/baseline/run_times_summary.csv
 
-echo "Running OpenMP baseline..."
-export OMP_NUM_THREADS=16    # or ${SLURM_CPUS_PER_TASK:-16}
-srun --ntasks=1 ./miniweather_openmp > ../results/baseline/openmp_baseline.log
-
-echo "Running MPI baseline (1 rank)..."
-export OMP_NUM_THREADS=1
-srun --ntasks=1 ./miniweather_mpi | tee ../results/baseline/mpi_baseline_output.txt
+echo "Baseline jobs finished. CSVs in results/baseline/"

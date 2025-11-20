@@ -1,18 +1,31 @@
-#!/bin/bash
+#!/usr/bin/env bash
 set -euo pipefail
 
-# Always run from repo root
-cd "$(dirname "$0")"
-
-echo "Submitting baseline job..."
-sbatch slurm/run_baseline.sbatch
-
-echo "Submitting STRONG scaling jobs..."
-sbatch slurm/strong_scaling/strong_1n.sbatch
-sbatch slurm/strong_scaling/strong_2n.sbatch
-sbatch slurm/strong_scaling/strong_4n.sbatch
-
-echo "Submitting WEAK scaling jobs..."
-sbatch slurm/weak_scaling/weak_1n.sbatch
-sbatch slurm/weak_scaling/weak_2n.sbatch
-sbatch slurm/weak_scaling/weak_4n.sbatch
+case "${1:-}" in
+  baseline)
+    sbatch slurm/baseline/run_baseline.sbatch
+    ;;
+  strong)
+    sbatch slurm/strong_scaling/run_strong_1node.sbatch
+    sbatch slurm/strong_scaling/run_strong_2nodes.sbatch
+    sbatch slurm/strong_scaling/run_strong_4nodes.sbatch
+    ;;
+  weak)
+    sbatch slurm/weak_scaling/run_weak_1node.sbatch
+    sbatch slurm/weak_scaling/run_weak_2nodes.sbatch
+    sbatch slurm/weak_scaling/run_weak_4nodes.sbatch
+    ;;
+  hybrid)
+    sbatch slurm/hybrid/strong_scaling/run_hybrid_strong.sbatch
+    ;;
+  all)
+    "$0" baseline
+    "$0" strong
+    "$0" weak
+    "$0" hybrid
+    ;;
+  *)
+    echo "Usage: $0 {baseline|strong|weak|hybrid|all}"
+    exit 1
+    ;;
+esac
