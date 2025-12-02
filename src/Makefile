@@ -4,15 +4,15 @@
 
 # Compilers
 CC      = mpicc
-ACCCC   = nvc     # NVIDIA HPC Compiler for OpenACC (or use pgcc)
+ACCCC   = mpicc  # Use GCC with OpenACC support (fallback if nvc unavailable)
 
 # Flags
 CFLAGS  = -O3 -Wall -fopenmp
 LDFLAGS = -fopenmp
 
-# OpenACC flags (adjust -gpu=cc80 based on your GPU: cc70=V100, cc80=A100, cc86=A6000)
-ACCFLAGS = -acc -gpu=cc80 -Minfo=accel -O3
-ACCLDFLAGS = -acc
+# OpenACC flags (using GCC as fallback)
+ACCFLAGS = -fopenacc -O3
+ACCLDFLAGS = -fopenacc
 
 # ---------------------------
 # Problem size (overridable)
@@ -32,7 +32,7 @@ ACCFLAGS += $(DEFS)
 # Targets
 # ---------------------------
 TARGETS = miniweather_serial miniweather_openmp miniweather_mpi miniweather_hybrid \
-          miniweather_openacc miniweather_mpi_openacc
+          miniweather_openacc miniweather_mpi_openacc miniweather_mpi_openacc_optimized
 
 all: $(TARGETS)
 
@@ -49,12 +49,15 @@ miniweather_mpi: miniweather_mpi.c
 miniweather_hybrid: miniweather_hybrid.c
 	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
 
-# GPU versions (new)
+# GPU versions (new) - Using GCC with OpenACC
 miniweather_openacc: miniweather_openacc.c
-	$(ACCCC) $(ACCFLAGS) -o $@ $^ $(ACCLDFLAGS)
+	gcc $(ACCFLAGS) $(DEFS) -o $@ $^ $(ACCLDFLAGS)
 
 miniweather_mpi_openacc: miniweather_mpi_openacc.c
-	$(ACCCC) $(ACCFLAGS) -o $@ $^ $(ACCLDFLAGS) -lmpi
+	OMPI_CC=gcc mpicc $(ACCFLAGS) $(DEFS) -o $@ $^ $(ACCLDFLAGS)
+
+miniweather_mpi_openacc_optimized: miniweather_mpi_openacc_optimized.c
+	OMPI_CC=gcc mpicc $(ACCFLAGS) $(DEFS) -o $@ $^ $(ACCLDFLAGS)
 
 clean:
 	rm -f $(TARGETS) *.o

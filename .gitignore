@@ -2,6 +2,7 @@
 miniweather_mpi
 miniweather_openacc
 miniweather_mpi_openacc
+miniweather_mpi_openacc_optimized
 miniweather_hybrid
 miniweather_serial
 miniweather_openmp
