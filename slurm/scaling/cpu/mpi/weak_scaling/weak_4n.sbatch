@@ -19,7 +19,7 @@ BASE_NY=128
 BASE_NZ=128
 STEPS=50
 
-CSV="results/weak_scaling/4_nodes/weak_4n_${SLURM_JOB_ID}.csv"
+CSV="results/weak_scaling/4_node/weak_4n_${SLURM_JOB_ID}.csv"
 echo "nodes,ranks,NX,NY,NZ,STEPS,time" > "$CSV"
 
 RANKS=$SLURM_NTASKS
