@@ -11,6 +11,16 @@ miniweather_openmp
 *.out
 *.exe
 
+# Ignore all result artifacts
+/results/
+/results/**
+/results/*
+
+# (Optional) explicitly ignore common result file types
+results/**/*.csv
+results/**/*.err
+results/**/*.log
+results/**/*.txt
 
 
 # Python virtual environment
