@@ -1,0 +1,16 @@
+make: Warning: File 'miniweather_openmp' has modification time 0.00088 s in the future
+miniweather_mpi.c: In function ‘halo_exchange’:
+miniweather_mpi.c:35:15: warning: unused variable ‘sx’ [-Wunused-variable]
+   35 |     const int sx = lx + 2;
+      |               ^~
+miniweather_mpi.c: In function ‘step_update’:
+miniweather_mpi.c:48:15: warning: unused variable ‘sx’ [-Wunused-variable]
+   48 |     const int sx = lx + 2;
+      |               ^~
+miniweather_mpi.c: In function ‘main’:
+miniweather_mpi.c:135:19: warning: unused variable ‘sx’ [-Wunused-variable]
+  135 |         const int sx = lx + 2;
+      |                   ^~
+make: warning:  Clock skew detected.  Your build may be incomplete.
+slurmstepd: error: Detected 1 oom_kill event in StepId=4289.1. Some of the step tasks have been OOM Killed.
+srun: error: node1: task 0: Out Of Memory

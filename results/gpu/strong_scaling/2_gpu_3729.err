@@ -1,2 +1,0 @@
-make: nvc: No such file or directory
-make: *** [Makefile:69: miniweather_mpi_openacc] Error 127
