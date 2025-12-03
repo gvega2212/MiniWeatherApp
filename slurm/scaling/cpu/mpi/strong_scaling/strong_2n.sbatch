@@ -18,7 +18,8 @@ NZ=256
 STEPS=50
 
 # make sure nested dirs exist
-mkdir -p results/strong_scaling/2_node
+mkdir -p results/strong_scaling/2_nodes
+
 
 # Build once
 make -C src clean
