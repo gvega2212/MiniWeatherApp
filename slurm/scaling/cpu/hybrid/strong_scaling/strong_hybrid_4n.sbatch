@@ -22,11 +22,18 @@ NZ=128
 STEPS=50
 
 make -C src clean
-make -C src NX=$NX NY=$NY NZ=$NZ STEPS=$STEPS
+make -C src miniweather_hybrid NX=$NX NY=$NY NZ=$NZ STEPS=$STEPS
+
+JOB_BIN_DIR="$SLURM_SUBMIT_DIR/.job_bins_$SLURM_JOB_ID"
+trap 'rm -rf "$JOB_BIN_DIR"' EXIT
+mkdir -p "$JOB_BIN_DIR"
+
+cp src/miniweather_hybrid "$JOB_BIN_DIR/"
+JOB_BIN="$JOB_BIN_DIR/miniweather_hybrid"
 
 export OMP_NUM_THREADS=$SLURM_CPUS_PER_TASK
 
-OUT=$(srun ./src/miniweather_mpi \
+OUT=$(srun "$JOB_BIN" \
       | tee results/hybrid/strong_scaling/4_node/hybrid_4n_allranks_${SLURM_JOB_ID}.log)
 
 TIME_VAL=$(echo "$OUT" | awk -F'TIME=' '/TIME=/{print $2}' | awk '{print $1}')

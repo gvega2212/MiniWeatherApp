@@ -3,8 +3,8 @@
 #SBATCH -A def-sponsor00
 #SBATCH -p node
 #SBATCH -N 4
-#SBATCH --ntasks-per-node=1        # total MPI ranks = 4
-#SBATCH --cpus-per-task=2          # threads per rank
+#SBATCH --ntasks-per-node=2        # total MPI ranks = 8
+#SBATCH --cpus-per-task=1          # threads per rank (fits per-node CPU count)
 #SBATCH -t 00:20:00
 #SBATCH --mem=2G
 #SBATCH -o results/hybrid/weak_scaling/4_node/weak_hybrid_4n_%j.out
@@ -33,9 +33,16 @@ echo "Running HYBRID weak scaling on 4 nodes: RANKS=$RANKS THREADS=$SLURM_CPUS_P
 make -C src clean
 make -C src miniweather_hybrid NX=$NX NY=$NY NZ=$NZ STEPS=$STEPS
 
+JOB_BIN_DIR="$SLURM_SUBMIT_DIR/.job_bins_$SLURM_JOB_ID"
+trap 'rm -rf "$JOB_BIN_DIR"' EXIT
+mkdir -p "$JOB_BIN_DIR"
+
+cp src/miniweather_hybrid "$JOB_BIN_DIR/"
+JOB_BIN="$JOB_BIN_DIR/miniweather_hybrid"
+
 export OMP_NUM_THREADS=$SLURM_CPUS_PER_TASK
 
-OUT=$(srun ./src/miniweather_hybrid \
+OUT=$(srun "$JOB_BIN" \
        | tee results/hybrid/weak_scaling/4_node/weak_hybrid_4n_${SLURM_JOB_ID}.log)
 
 TIME_VAL=$(printf "%s\n" "$OUT" \

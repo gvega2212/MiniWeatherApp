@@ -33,9 +33,16 @@ echo "Running HYBRID weak scaling on 2 nodes: RANKS=$RANKS THREADS=$SLURM_CPUS_P
 make -C src clean
 make -C src miniweather_hybrid NX=$NX NY=$NY NZ=$NZ STEPS=$STEPS
 
+JOB_BIN_DIR="$SLURM_SUBMIT_DIR/.job_bins_$SLURM_JOB_ID"
+trap 'rm -rf "$JOB_BIN_DIR"' EXIT
+mkdir -p "$JOB_BIN_DIR"
+
+cp src/miniweather_hybrid "$JOB_BIN_DIR/"
+JOB_BIN="$JOB_BIN_DIR/miniweather_hybrid"
+
 export OMP_NUM_THREADS=$SLURM_CPUS_PER_TASK
 
-OUT=$(srun ./src/miniweather_hybrid \
+OUT=$(srun "$JOB_BIN" \
        | tee results/hybrid/weak_scaling/2_node/weak_hybrid_2n_${SLURM_JOB_ID}.log)
 
 TIME_VAL=$(printf "%s\n" "$OUT" \
