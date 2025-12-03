@@ -1,0 +1,15 @@
+make: Warning: File 'miniweather_mpi' has modification time 0.017 s in the future
+miniweather_hybrid.c: In function ‘halo_exchange’:
+miniweather_hybrid.c:41:15: warning: unused variable ‘sx’ [-Wunused-variable]
+   41 |     const int sx = lx + 2;
+      |               ^~
+miniweather_hybrid.c: In function ‘step_update’:
+miniweather_hybrid.c:54:15: warning: unused variable ‘sx’ [-Wunused-variable]
+   54 |     const int sx = lx + 2;
+      |               ^~
+miniweather_hybrid.c: In function ‘main’:
+miniweather_hybrid.c:146:19: warning: unused variable ‘sx’ [-Wunused-variable]
+  146 |         const int sx = lx + 2;
+      |                   ^~
+make: nvc: No such file or directory
+make: *** [Makefile:54: miniweather_openacc] Error 127

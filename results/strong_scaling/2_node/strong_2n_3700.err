@@ -1,0 +1,25 @@
+miniweather_mpi.c: In function ‘halo_exchange’:
+miniweather_mpi.c:35:15: warning: unused variable ‘sx’ [-Wunused-variable]
+   35 |     const int sx = lx + 2;
+      |               ^~
+miniweather_mpi.c: In function ‘step_update’:
+miniweather_mpi.c:48:15: warning: unused variable ‘sx’ [-Wunused-variable]
+   48 |     const int sx = lx + 2;
+      |               ^~
+miniweather_mpi.c: In function ‘main’:
+miniweather_mpi.c:135:19: warning: unused variable ‘sx’ [-Wunused-variable]
+  135 |         const int sx = lx + 2;
+      |                   ^~
+miniweather_hybrid.c: In function ‘halo_exchange’:
+miniweather_hybrid.c:41:15: warning: unused variable ‘sx’ [-Wunused-variable]
+   41 |     const int sx = lx + 2;
+      |               ^~
+miniweather_hybrid.c: In function ‘step_update’:
+miniweather_hybrid.c:54:15: warning: unused variable ‘sx’ [-Wunused-variable]
+   54 |     const int sx = lx + 2;
+      |               ^~
+miniweather_hybrid.c: In function ‘main’:
+miniweather_hybrid.c:146:19: warning: unused variable ‘sx’ [-Wunused-variable]
+  146 |         const int sx = lx + 2;
+      |                   ^~
+/var/spool/slurmd/job03700/slurm_script: line 28: results/strong_scaling/2_nodes/strong_2n_3700.csv: No such file or directory
