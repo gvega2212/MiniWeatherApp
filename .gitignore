@@ -21,3 +21,7 @@ results/**/*.csv
 results/**/*.err
 results/**/*.log
 results/**/*.txt
+
+# Python virtual environment
+.venv/
+__pycache__/
