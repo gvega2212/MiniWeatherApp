@@ -22,6 +22,11 @@ BASE_NY=128
 BASE_NZ=128
 STEPS=50
 
+JOB_BIN_DIR="$SLURM_SUBMIT_DIR/.job_bins_$SLURM_JOB_ID"
+trap 'rm -rf "$JOB_BIN_DIR"' EXIT
+mkdir -p "$JOB_BIN_DIR"
+JOB_BIN="$JOB_BIN_DIR/miniweather_mpi"
+
 for RANKS in 1 2 4; do
   NX=$((BASE_NX * RANKS))
   NY=$BASE_NY
@@ -32,8 +37,10 @@ for RANKS in 1 2 4; do
   make -C src clean
   make -C src NX=$NX NY=$NY NZ=$NZ STEPS=$STEPS
 
+      cp src/miniweather_mpi "$JOB_BIN"
+
   export OMP_NUM_THREADS=1
-  OUT=$(srun --ntasks=$RANKS ./src/miniweather_mpi \
+      OUT=$(srun --ntasks=$RANKS "$JOB_BIN" \
         | tee results/weak_scaling/1_node/weak_1n_${RANKS}ranks_${SLURM_JOB_ID}.log)
 
   TIME_VAL=$(printf "%s\n" "$OUT" \

@@ -32,9 +32,16 @@ echo "Running weak scaling on 2 nodes: RANKS=$RANKS NX=$NX NY=$NY NZ=$NZ"
 make -C src clean
 make -C src NX=$NX NY=$NY NZ=$NZ STEPS=$STEPS
 
+JOB_BIN_DIR="$SLURM_SUBMIT_DIR/.job_bins_$SLURM_JOB_ID"
+trap 'rm -rf "$JOB_BIN_DIR"' EXIT
+mkdir -p "$JOB_BIN_DIR"
+
+cp src/miniweather_mpi "$JOB_BIN_DIR/"
+JOB_BIN="$JOB_BIN_DIR/miniweather_mpi"
+
 export OMP_NUM_THREADS=1
 
-OUT=$(srun --ntasks=$SLURM_NTASKS ./src/miniweather_mpi \
+OUT=$(srun --ntasks=$SLURM_NTASKS "$JOB_BIN" \
       | tee results/weak_scaling/2_node/weak_2n_${RANKS}ranks_${SLURM_JOB_ID}.log)
 
 TIME_VAL=$(printf "%s\n" "$OUT" \

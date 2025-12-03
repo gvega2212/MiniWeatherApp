@@ -35,7 +35,14 @@ echo "Running GPU weak scaling with $GPUS GPU: NX=$NX"
 make -C src clean
 make -C src miniweather_openacc NX=$NX NY=$NY NZ=$NZ STEPS=$STEPS
 
-OUT=$(./src/miniweather_openacc \
+JOB_BIN_DIR="$SLURM_SUBMIT_DIR/.job_bins_$SLURM_JOB_ID"
+trap 'rm -rf "$JOB_BIN_DIR"' EXIT
+mkdir -p "$JOB_BIN_DIR"
+
+cp src/miniweather_openacc "$JOB_BIN_DIR/"
+BIN="$JOB_BIN_DIR/miniweather_openacc"
+
+OUT=$("$BIN" \
       | tee results/gpu/weak_scaling/1_gpu_${SLURM_JOB_ID}.log)
 
 TIME_VAL=$(echo "$OUT" | grep "METRICS:" | awk -F'TIME=' '{print $2}' | awk '{print $1}')
