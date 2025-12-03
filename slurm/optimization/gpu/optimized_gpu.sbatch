@@ -11,6 +11,13 @@ set -euo pipefail
 cd "$SLURM_SUBMIT_DIR"
 source env/load_modules.sh
 
+module purge
+module load nvhpc/23.9
+
+export NVHPC_ROOT=/cvmfs/restricted.computecanada.ca/easybuild/software/2023/x86-64-v3/Core/nvhpc/23.9/Linux_x86_64/23.9
+export PATH=$NVHPC_ROOT/compilers/bin:$PATH
+export LD_LIBRARY_PATH=${LD_LIBRARY_PATH:-}:$NVHPC_ROOT/compilers/lib
+
 mkdir -p results/optimization/gpu
 
 NX=2048
