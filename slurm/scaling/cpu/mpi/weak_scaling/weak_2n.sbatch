@@ -18,33 +18,46 @@ BASE_NX=256
 BASE_NY=128
 BASE_NZ=128
 STEPS=50
+NODES=2
+RANK_SET=(2 4 8)
 
 CSV="results/weak_scaling/2_node/weak_2n_${SLURM_JOB_ID}.csv"
-echo "nodes,ranks,NX,NY,NZ,STEPS,time" > "$CSV"
-
-RANKS=$SLURM_NTASKS
-NX=$((BASE_NX * RANKS))
-NY=$BASE_NY
-NZ=$BASE_NZ
-
-echo "Running weak scaling on 2 nodes: RANKS=$RANKS NX=$NX NY=$NY NZ=$NZ"
-
-make -C src clean
-make -C src NX=$NX NY=$NY NZ=$NZ STEPS=$STEPS
+echo "nodes,ranks,threads,NX,NY,NZ,STEPS,time" > "$CSV"
 
 JOB_BIN_DIR="$SLURM_SUBMIT_DIR/.job_bins_$SLURM_JOB_ID"
 trap 'rm -rf "$JOB_BIN_DIR"' EXIT
 mkdir -p "$JOB_BIN_DIR"
 
-cp src/miniweather_mpi "$JOB_BIN_DIR/"
-JOB_BIN="$JOB_BIN_DIR/miniweather_mpi"
+BUILD_LOCK="$SLURM_SUBMIT_DIR/src/.build.lock"
+
+build_and_stage() {
+  local nx="$1"
+  local dest="$2"
+  (
+    flock 9
+    make -C src clean
+    make -C src miniweather_mpi NX=$nx NY=$BASE_NY NZ=$BASE_NZ STEPS=$STEPS
+    cp src/miniweather_mpi "$dest"
+  ) 9>"$BUILD_LOCK"
+}
 
 export OMP_NUM_THREADS=1
 
-OUT=$(srun --ntasks=$SLURM_NTASKS "$JOB_BIN" \
-      | tee results/weak_scaling/2_node/weak_2n_${RANKS}ranks_${SLURM_JOB_ID}.log)
+for RANKS in "${RANK_SET[@]}"; do
+  NX=$((BASE_NX * RANKS))
+  NY=$BASE_NY
+  NZ=$BASE_NZ
+  BIN="$JOB_BIN_DIR/miniweather_mpi_${RANKS}r"
 
-TIME_VAL=$(printf "%s\n" "$OUT" \
-      | awk -F'TIME=' '/TIME=/{print $2}' | awk '{print $1}')
+  echo "Running weak scaling on 2 nodes: RANKS=$RANKS NX=$NX"
+  build_and_stage "$NX" "$BIN"
 
-echo "2,$RANKS,$NX,$NY,$NZ,$STEPS,$TIME_VAL" >> "$CSV"
+  TPN=$((RANKS / NODES))
+  OUT=$(srun --ntasks=$RANKS --ntasks-per-node=$TPN "$BIN" \
+        | tee results/weak_scaling/2_node/weak_2n_${RANKS}ranks_${SLURM_JOB_ID}.log)
+
+  TIME_VAL=$(printf "%s\n" "$OUT" \
+        | awk -F'TIME=' '/TIME=/{print $2}' | awk '{print $1}')
+
+  echo "$NODES,$RANKS,$TPN,$NX,$NY,$NZ,$STEPS,$TIME_VAL" >> "$CSV"
+done
