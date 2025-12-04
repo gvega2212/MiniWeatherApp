@@ -22,7 +22,7 @@ NODES=4
 RANK_SET=(4 8)
 
 CSV="results/weak_scaling/4_node/weak_4n_${SLURM_JOB_ID}.csv"
-echo "nodes,ranks,threads,NX,NY,NZ,STEPS,time" > "$CSV"
+echo "nodes,ranks,NX,NY,NZ,STEPS,time" > "$CSV"
 
 JOB_BIN_DIR="$SLURM_SUBMIT_DIR/.job_bins_$SLURM_JOB_ID"
 trap 'rm -rf "$JOB_BIN_DIR"' EXIT
@@ -41,8 +41,6 @@ build_and_stage() {
   ) 9>"$BUILD_LOCK"
 }
 
-export OMP_NUM_THREADS=1
-
 for RANKS in "${RANK_SET[@]}"; do
   NX=$((BASE_NX * RANKS))
   NY=$BASE_NY
@@ -59,5 +57,5 @@ for RANKS in "${RANK_SET[@]}"; do
   TIME_VAL=$(printf "%s\n" "$OUT" \
         | awk -F'TIME=' '/TIME=/{print $2}' | awk '{print $1}')
 
-  echo "$NODES,$RANKS,$TPN,$NX,$NY,$NZ,$STEPS,$TIME_VAL" >> "$CSV"
+  echo "$NODES,$RANKS,$NX,$NY,$NZ,$STEPS,$TIME_VAL" >> "$CSV"
 done
