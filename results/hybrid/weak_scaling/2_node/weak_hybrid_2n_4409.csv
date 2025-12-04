@@ -1,0 +1,2 @@
+nodes,ranks,threads,NX,NY,NZ,STEPS,time
+2,2,2,512,128,128,50,2.057714

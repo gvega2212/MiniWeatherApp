@@ -27,6 +27,19 @@ trap 'rm -rf "$JOB_BIN_DIR"' EXIT
 mkdir -p "$JOB_BIN_DIR"
 JOB_BIN="$JOB_BIN_DIR/miniweather_mpi"
 
+BUILD_LOCK="$SLURM_SUBMIT_DIR/src/.build.lock"
+
+build_and_stage() {
+  local nx="$1"
+  local dest="$2"
+  (
+    flock 9
+    make -C src clean
+    make -C src miniweather_mpi NX=$nx NY=$BASE_NY NZ=$BASE_NZ STEPS=$STEPS
+    cp src/miniweather_mpi "$dest"
+  ) 9>"$BUILD_LOCK"
+}
+
 for RANKS in 1 2 4; do
   NX=$((BASE_NX * RANKS))
   NY=$BASE_NY
@@ -34,13 +47,10 @@ for RANKS in 1 2 4; do
 
   echo "Building for weak scaling: RANKS=$RANKS NX=$NX NY=$NY NZ=$NZ"
 
-  make -C src clean
-  make -C src NX=$NX NY=$NY NZ=$NZ STEPS=$STEPS
-
-      cp src/miniweather_mpi "$JOB_BIN"
+  build_and_stage "$NX" "$JOB_BIN"
 
   export OMP_NUM_THREADS=1
-      OUT=$(srun --ntasks=$RANKS "$JOB_BIN" \
+  OUT=$(srun --ntasks=$RANKS "$JOB_BIN" \
         | tee results/weak_scaling/1_node/weak_1n_${RANKS}ranks_${SLURM_JOB_ID}.log)
 
   TIME_VAL=$(printf "%s\n" "$OUT" \
