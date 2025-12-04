@@ -30,11 +30,18 @@ NZ=$BASE_NZ
 echo "Running weak scaling on 4 nodes: RANKS=$RANKS NX=$NX NY=$NY NZ=$NZ"
 
 make -C src clean
-make -C src NX=$NX NY=$NY NZ=$NZ STEPS=$STEPS
+# Build the specific MPI CPU target to avoid silent misses
+make -C src NX=$NX NY=$NY NZ=$NZ STEPS=$STEPS miniweather_mpi
 
 JOB_BIN_DIR="$SLURM_SUBMIT_DIR/.job_bins_$SLURM_JOB_ID"
 trap 'rm -rf "$JOB_BIN_DIR"' EXIT
 mkdir -p "$JOB_BIN_DIR"
+
+if [[ ! -x src/miniweather_mpi ]]; then
+      echo "ERROR: Expected binary src/miniweather_mpi not found after build" 1>&2
+      ls -l src 1>&2 || true
+      exit 1
+fi
 
 cp src/miniweather_mpi "$JOB_BIN_DIR/"
 JOB_BIN="$JOB_BIN_DIR/miniweather_mpi"
